@@ -1,6 +1,7 @@
 package com.example.tvmazeexample.Response
 
 import android.media.Rating
+import retrofit2.http.Url
 
 data class TvShowResponse(
     val id: Int,
@@ -12,7 +13,8 @@ data class TvShowResponse(
     val rating: com.example.tvmazeexample.Response.Rating?,
     val image: Image?,
     val summary: String?,
-    val premiered: String?
+    val premiered: String?,
+    val url: String?
 )
 data class Rating(
     val average: Double?

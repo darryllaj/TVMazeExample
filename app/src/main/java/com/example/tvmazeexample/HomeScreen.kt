@@ -1,3 +1,4 @@
+
 @file:OptIn(ExperimentalMaterial3Api::class)
 
 import androidx.compose.foundation.clickable
@@ -13,36 +14,37 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.example.tvmazeexample.Response.TvShowResponse
-import org.jetbrains.annotations.Async
+import com.example.tvmazeexample.UiState
 
 
 @Composable
 fun HomeScreen(
-    shows: List<TvShowResponse>,
+    uiState: UiState<List<TvShowResponse>>,
+    onRetry: () -> Unit,
     onShowClick: (Int) -> Unit
 ) {
     Scaffold(
@@ -58,29 +60,97 @@ fun HomeScreen(
         }
     ) { paddingValues ->
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
+        when (uiState) {
 
-            items(
-                items = shows,
-                key = { it.id }
-            ) { show ->
+            // =========================
+            // LOADING
+            // =========================
+            is UiState.Loading -> {
 
-                TvShowItem(
-                    show = show,
-                    onClick = {
-                        onShowClick(show.id)
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator()
+
+                    Spacer(
+                        modifier = Modifier.height(12.dp)
+                    )
+
+                    Text(
+                        text = "Loading..."
+                    )
+                }
+            }
+
+
+            // =========================
+            // ERROR
+            // =========================
+            is UiState.Error -> {
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+
+                    Text(
+                        text = uiState.message,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+
+                    Spacer(
+                        modifier = Modifier.height(16.dp)
+                    )
+
+                    Button(
+                        onClick = onRetry
+                    ) {
+                        Text("Retry")
                     }
-                )
+                }
+            }
+
+
+            // =========================
+            // SUCCESS
+            // =========================
+            is UiState.Success -> {
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+
+                    items(
+                        items = uiState.data,
+                        key = { it.id }
+                    ) { show ->
+
+                        TvShowItem(
+                            show = show,
+                            onClick = {
+                                onShowClick(show.id)
+                            }
+                        )
+                    }
+                }
             }
         }
     }
 }
+
+
 @Composable
 fun TvShowItem(
     show: TvShowResponse,
@@ -95,7 +165,7 @@ fun TvShowItem(
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 4.dp
-        ),
+        )
     ) {
 
         Row(
@@ -104,6 +174,7 @@ fun TvShowItem(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+
             AsyncImage(
                 model = show.image?.medium,
                 contentDescription = show.name,
@@ -113,6 +184,7 @@ fun TvShowItem(
                     .clip(RoundedCornerShape(16.dp)),
                 contentScale = ContentScale.Crop
             )
+
             Spacer(
                 modifier = Modifier.width(16.dp)
             )
@@ -120,16 +192,21 @@ fun TvShowItem(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
+
                 Text(
                     text = show.name ?: "Unknown",
                     color = Color.Black,
+                    fontWeight = FontWeight.Bold
                 )
+
                 Spacer(
                     modifier = Modifier.height(8.dp)
                 )
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+
                     Icon(
                         imageVector = Icons.Default.Star,
                         contentDescription = "Rating",
@@ -137,7 +214,9 @@ fun TvShowItem(
                         modifier = Modifier.size(24.dp)
                     )
 
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(
+                        modifier = Modifier.width(6.dp)
+                    )
 
                     Text(
                         text = "${show.rating?.average ?: "-"}",
@@ -145,9 +224,10 @@ fun TvShowItem(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(
+                    modifier = Modifier.height(8.dp)
+                )
 
-                // PREMIERED
                 Text(
                     text = "Premiered: ${show.premiered ?: "-"}",
                     color = Color(0xFF4B5563),
@@ -157,3 +237,4 @@ fun TvShowItem(
         }
     }
 }
+

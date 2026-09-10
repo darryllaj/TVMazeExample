@@ -2,32 +2,36 @@ package com.example.tvmazeexample.ViewModels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.tvmazeexample.Repository.TvShowRepository
+import com.example.tvmazeexample.UiState
+import com.example.tvmazeexample.Repository.TvShowRepositoryInterface
 import com.example.tvmazeexample.Response.TvShowResponse
-import com.example.tvmazeexample.Retrofit.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+class HomeViewModels(
+    private val repository: TvShowRepositoryInterface
+) : ViewModel() {
 
-class HomeViewModels (
-    private val repository: TvShowRepository
-): ViewModel() {
-
-
-    private val _shows = MutableStateFlow<List<TvShowResponse>>(emptyList())
-    val shows: StateFlow<List<TvShowResponse>> = _shows
+    private  val _uiState = MutableStateFlow<UiState<List<TvShowResponse>>>(UiState.Loading)
+    val uiState: StateFlow<UiState<List<TvShowResponse>>> = _uiState
 
     init {
         getShows()
     }
 
-    private fun getShows() {
+    fun getShows() {
         viewModelScope.launch {
+            _uiState.value = UiState.Loading
+
             try {
-                _shows.value = repository.getShow()
+                val result = repository.getShow()
+
+                _uiState.value = UiState.Success(result)
             } catch (e: Exception) {
-                e.printStackTrace()
+                _uiState.value = UiState.Error(
+                    e.message ?: "Terjadi kesalahan"
+                )
             }
         }
     }

@@ -1,10 +1,13 @@
 package com.example.tvmazeexample
 
 import HomeScreen
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.text.HtmlCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -17,6 +20,7 @@ import com.example.tvmazeexample.ViewModels.DetailViewModel
 import com.example.tvmazeexample.ViewModels.DetailViewModelFactory
 import com.example.tvmazeexample.ViewModels.HomeViewModelFactory
 import com.example.tvmazeexample.ViewModels.HomeViewModels
+
 
 @Composable
 fun AppNavigation() {
@@ -41,16 +45,18 @@ fun AppNavigation() {
                 factory = HomeViewModelFactory(repository)
             )
 
-            val shows by viewModel.shows.collectAsState()
+            val uiState by viewModel.uiState.collectAsState()
 
             HomeScreen(
-                shows = shows,
+                uiState = uiState,
+                onRetry = {
+                    viewModel.getShows()
+                },
                 onShowClick = { id ->
                     navController.navigate("detail/$id")
                 }
             )
         }
-
 
         // =========================
         // DETAIL
@@ -64,7 +70,10 @@ fun AppNavigation() {
             )
         ) { backStackEntry ->
 
-            val id = backStackEntry.arguments?.getInt("id") ?: 0
+            val context = LocalContext.current
+
+            val id = backStackEntry.arguments
+                ?.getInt("id") ?: 0
 
             val repository = TvShowRepository(
                 RetrofitInstance.apiService
@@ -74,17 +83,69 @@ fun AppNavigation() {
                 factory = DetailViewModelFactory(repository)
             )
 
-            val showState = detailViewModel.showDetail.collectAsState()
+            val showState =
+                detailViewModel.showDetail.collectAsState()
 
             LaunchedEffect(id) {
                 detailViewModel.getShowDetail(id)
             }
 
-            showState?.value?.let { showState ->
+            // =========================
+            // TAMPILKAN DETAIL
+            // =========================
+
+            showState.value?.let { show ->
+
                 DetailScreen(
-                    show = showState,
+                    show = show,
+
                     onBackClick = {
                         navController.popBackStack()
+                    },
+
+                    // =========================
+                    // SHARE
+                    // =========================
+
+                    onShareClick = {
+
+                        // Bersihkan HTML dari summary
+                        val summary = HtmlCompat
+                            .fromHtml(
+                                show.summary.orEmpty(),
+                                HtmlCompat.FROM_HTML_MODE_LEGACY
+                            )
+                            .toString()
+                            .trim()
+
+                        // Isi yang akan dibagikan
+                        val shareText = """
+                            ${show.name ?: "Unknown"}
+                            
+                            $summary
+                            
+                            ${show.url ?: ""}
+                        """.trimIndent()
+
+                        // Intent Share
+                        val shareIntent = Intent(
+                            Intent.ACTION_SEND
+                        ).apply {
+                            type = "text/plain"
+
+                            putExtra(
+                                Intent.EXTRA_TEXT,
+                                shareText
+                            )
+                        }
+
+                        // Tampilkan Android Share Sheet
+                        context.startActivity(
+                            Intent.createChooser(
+                                shareIntent,
+                                "Share TV Show"
+                            )
+                        )
                     }
                 )
             }

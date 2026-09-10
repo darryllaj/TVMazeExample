@@ -6,12 +6,12 @@ import com.example.tvmazeexample.Retrofit.ApiService
 
 class TvShowRepository(
     private val apiService: ApiService
-) {
+): TvShowRepositoryInterface {
 
-    suspend fun getShow(): List<TvShowResponse>{
-        return ApiConfig.apiService.getShows()
+    override suspend fun getShow(): List<TvShowResponse>{
+        return apiService.getShows()
     }
-    suspend fun getShowDetail(id: Int): TvShowResponse {
+    override suspend fun getShowDetail(id: Int): TvShowResponse {
         return apiService.getDetails(id)
     }
 }

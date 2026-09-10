@@ -36,7 +36,9 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.example.tvmazeexample.Response.TvShowResponse
 import androidx.core.text.HtmlCompat
-
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 @Composable
 private fun DetailInfo(
     title: String,
@@ -65,7 +67,8 @@ private fun DetailInfo(
 @Composable
 fun DetailScreen(
     show: TvShowResponse,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onShareClick: () -> Unit
 ) {
 
     Column(
@@ -126,6 +129,21 @@ fun DetailScreen(
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back",
+                    tint = Color.White
+                )
+            }
+            IconButton(
+                onClick = onShareClick,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .size(45.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(Color.Black.copy(alpha = 0.55f))
+                    .align(Alignment.TopEnd)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Share,
+                    contentDescription = "Share",
                     tint = Color.White
                 )
             }
