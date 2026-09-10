@@ -4,13 +4,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tvmazeexample.Repository.TvShowRepository
 import com.example.tvmazeexample.Response.TvShowResponse
+import com.example.tvmazeexample.Retrofit.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 
-class HomeViewModels : ViewModel() {
-    private val repository = TvShowRepository()
+class HomeViewModels (
+    private val repository: TvShowRepository
+): ViewModel() {
+
 
     private val _shows = MutableStateFlow<List<TvShowResponse>>(emptyList())
     val shows: StateFlow<List<TvShowResponse>> = _shows
