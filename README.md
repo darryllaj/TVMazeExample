@@ -87,4 +87,4 @@ If I had more time, I would improve the application in several areas:
 
 A short walkthrough video demonstrating the application, error state, code explanation, and an AI-generated issue that was fixed is available below.
 
-[Watch the Walkthrough Video](VIDEO_LINK)
+[Watch the Walkthrough Video](https://drive.google.com/file/d/1lxtxYZVcgZlveQCsCo4ZI_JltEH99O1P/view?usp=sharing)
